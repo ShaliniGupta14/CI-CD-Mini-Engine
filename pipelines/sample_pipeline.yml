@@ -1,0 +1,9 @@
+pipeline:
+  name: "build-and-test"
+  stages:
+    - name: "Build"
+      script: echo "Building project..."
+    - name: "Test"
+      script: echo "Running tests..."
+    - name: "Deploy"
+      script: echo "Deploying project..."

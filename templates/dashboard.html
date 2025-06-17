@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CI/CD Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+    />
+    <style>
+      td.status-running {
+        color: orange;
+        font-weight: bold;
+      }
+      td.status-success {
+        color: green;
+        font-weight: bold;
+      }
+      td.status-failed {
+        color: red;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>CI/CD Pipeline Job Status</h2>
+    <table id="jobsTable" class="display">
+      <thead>
+        <tr>
+          <th>Job ID</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Logs</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr data-job-id="{{ job.id }}">
+          <td>{{ job.id }}</td>
+          <td>{{ job.name }}</td>
+          <td class="status-cell status-{{ job.status }}">{{ job.status }}</td>
+          <td><pre>{{ job.logs[:100] }}</pre></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("#jobsTable").DataTable();
+      });
+
+      // WebSocket Live Updates
+      const ws = new WebSocket("ws://localhost:8000/ws/jobs");
+
+      ws.onmessage = function (event) {
+        const statuses = JSON.parse(event.data);
+
+        for (const jobId in statuses) {
+          const status = statuses[jobId];
+          const row = document.querySelector(`tr[data-job-id='${jobId}']`);
+          if (row) {
+            const statusCell = row.querySelector(".status-cell");
+            statusCell.textContent = status;
+            statusCell.className = `status-cell status-${status}`;
+          }
+        }
+      };
+    </script>
+  </body>
+</html>
